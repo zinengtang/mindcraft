@@ -1,16 +1,17 @@
 const settings = {
-    "minecraft_version": "auto", // or specific version like "1.21.1"
+    "minecraft_version": "1.21.1", // or specific version like "1.21.1"
     "host": "127.0.0.1", // or "localhost", "your.ip.address.here"
-    "port": 43009, // set to -1 to automatically scan for open ports
+    "port": 42559, // set to -1 to automatically scan for open ports
     "auth": "offline", // or "microsoft"
 
     // the mindserver manages all agents and hosts the UI
     "mindserver_port": 8080,
     "auto_open_ui": true, // opens UI in browser on startup
-    
+
     "base_profile": "assistant", // survival, assistant, creative, or god_mode
     "profiles": [
         "./andy.json",
+        "./eva.json",
         // "./profiles/gpt.json",
         // "./profiles/claude.json",
         // "./profiles/gemini.json",
@@ -35,8 +36,8 @@ const settings = {
     "render_bot_view": true, // show bot's view in browser at localhost:3000, 3001...
 
     "allow_insecure_coding": false, // allows newAction command and model can write/run code on your computer. enable at own risk
-    "allow_vision": true, // allows vision model to interpret screenshots as inputs
-    "blocked_actions" : ["!checkBlueprint", "!checkBlueprintLevel", "!getBlueprint", "!getBlueprintLevel"] , // commands to disable and remove from docs. Ex: ["!setMode"]
+    "allow_vision": false, // allows vision model to interpret screenshots as inputs
+    "blocked_actions": ["!checkBlueprint", "!checkBlueprintLevel", "!getBlueprint", "!getBlueprintLevel"], // commands to disable and remove from docs. Ex: ["!setMode"]
     "code_timeout_mins": -1, // minutes code is allowed to run. -1 for no timeout
     "relevant_docs_count": 5, // number of relevant code function docs to select for prompting. -1 for all
 
@@ -48,7 +49,7 @@ const settings = {
     "chat_bot_messages": true, // publicly chat messages to other bots
 
     "block_place_delay": 0, // delay between placing blocks (ms) if using newAction. helps avoid bot being kicked by anti-cheat mechanisms on servers.
-  
+
     "log_all_prompts": false, // log ALL prompts to file
 }
 
