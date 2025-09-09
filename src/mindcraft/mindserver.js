@@ -44,12 +44,38 @@ export function logoutAgent(agentName) {
     }
 }
 
-// Initialize the server
+// Add this to your mindserver.js file, after the express imports and before the static files middleware
+
+import { createProxyMiddleware } from 'http-proxy-middleware';
+
+// Then in your createMindServer function, after creating the app:
 export function createMindServer(host_public = false, port = 8080) {
     const app = express();
     server = http.createServer(app);
     io = new Server(server);
 
+    // Add proxy middleware for viewer routes
+    app.use('/viewer/:port', (req, res, next) => {
+        const viewerPort = req.params.port;
+        const targetUrl = `http://localhost:${viewerPort}`;
+
+        // Create proxy for this specific viewer port
+        const proxy = createProxyMiddleware({
+            target: targetUrl,
+            changeOrigin: true,
+            pathRewrite: {
+                [`^/viewer/${viewerPort}`]: '' // Remove the /viewer/PORT prefix
+            },
+            ws: true, // Enable WebSocket support if needed
+            logLevel: 'warn',
+            onError: (err, req, res) => {
+                console.error(`Viewer proxy error for port ${viewerPort}:`, err.message);
+                res.status(502).send(`Viewer on port ${viewerPort} is not available`);
+            }
+        });
+
+        proxy(req, res, next);
+    });
     // Serve static files
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     app.use(express.static(path.join(__dirname, 'public')));
@@ -193,20 +219,20 @@ export function createMindServer(host_public = false, port = 8080) {
                 console.log('Exiting MindServer');
                 process.exit(0);
             }, 2000);
-            
+
         });
 
-		socket.on('send-message', (agentName, data) => {
-			if (!agent_connections[agentName]) {
-				console.warn(`Agent ${agentName} not in game, cannot send message via MindServer.`);
-				return
-			}
-			try {
-				agent_connections[agentName].socket.emit('send-message', data)
-			} catch (error) {
-				console.error('Error: ', error);
-			}
-		});
+        socket.on('send-message', (agentName, data) => {
+            if (!agent_connections[agentName]) {
+                console.warn(`Agent ${agentName} not in game, cannot send message via MindServer.`);
+                return
+            }
+            try {
+                agent_connections[agentName].socket.emit('send-message', data)
+            } catch (error) {
+                console.error('Error: ', error);
+            }
+        });
 
         socket.on('bot-output', (agentName, message) => {
             io.emit('bot-output', agentName, message);
@@ -233,7 +259,7 @@ function agentsStatusUpdate(socket) {
     for (let agentName in agent_connections) {
         const conn = agent_connections[agentName];
         agents.push({
-            name: agentName, 
+            name: agentName,
             in_game: conn.in_game,
             viewerPort: conn.viewer_port,
             socket_connected: !!conn.socket

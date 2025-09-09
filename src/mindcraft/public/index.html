@@ -2,7 +2,6 @@
 <html>
 
 <head>
-    <title>Mindcraft</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body {
@@ -161,6 +160,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             width: 100%;
+            font-size: 1.2em;
+            font-weight: 500;
         }
 
         .start-btn:disabled {
@@ -232,7 +233,9 @@
             border: 1px solid #555;
             color: #e0e0e0;
             border-radius: 4px;
-            padding: 4px 6px;
+            padding: 8px 12px;
+            font-size: 1.1em;
+            min-height: 20px;
         }
 
         .neutral-btn {
@@ -394,13 +397,6 @@
 </head>
 
 <body>
-    <div class="title-row">
-        <div class="title-left">
-            <h1 style="margin: 0;">Mindcraft</h1>
-            <span id="msStatus" class="status-badge offline">mindserver offline</span>
-        </div>
-        <div class="title-spacer"></div>
-    </div>
     <div id="agents"></div>
 
     <div class="page-footer">
@@ -637,7 +633,7 @@
             return redacted;
         }
 
-        // Only update Last Message if it’s not a command
+        // Only update Last Message if it's not a command
         socket.on('bot-output', (agentName, message) => {
             const cleaned = stripBotCommands(message);
             if (!cleaned) return; // it's only a command; don't show it
@@ -861,7 +857,15 @@
             const cfg = agentSettings[agent.name] || {};
             const showViewer = agent.in_game && cfg.render_bot_view === true;
             const viewerPort = agent.viewerPort;
-            const viewerHTML = showViewer ? `<div class="agent-view-container"><iframe class="agent-viewer" id="viewer-${agent.name}" src="http://localhost:${viewerPort}/?agent=${encodeURIComponent(agent.name)}"></iframe></div>` : '';
+            const host = window.location.hostname;
+            const proto = window.location.protocol;
+            const viewerUrl = `${proto}//${host}:${viewerPort}/?agent=${encodeURIComponent(agent.name)}`;
+            // wherever you build the viewer iframe (e.g., public/index.html script or a React component)
+            const viewerPath = `http://localhost:${viewerPort}/?agent=${encodeURIComponent(agent.name)}`;
+            const viewerHTML = showViewer
+                ? `<div class="agent-view-container"><iframe class="agent-viewer" src="${viewerPath}"></iframe></div>`
+                : '';
+
             const lastMessage = agentLastMessage[agent.name] || '';
             return `
                     <div class="agent" id="agent-${agent.name}">

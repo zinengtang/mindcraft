@@ -11,6 +11,8 @@
         "express": "^4.18.2",
         "google-translate-api-x": "^10.7.1",
         "groq-sdk": "^0.15.0",
+        "http-proxy": "^1.18.1",
+        "http-proxy-middleware": "^3.0.5",
         "minecraft-data": "^3.78.0",
         "mineflayer": "^4.29.0",
         "mineflayer-armor-manager": "^2.0.1",
