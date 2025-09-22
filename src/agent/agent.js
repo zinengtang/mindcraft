@@ -17,6 +17,17 @@ import settings from './settings.js';
 import { Task } from './tasks/tasks.js';
 import { say } from './speak.js';
 
+// ==== add near the top (helpers) ====
+function clearAllControls(bot) {
+    try {
+        const keys = ['forward', 'back', 'left', 'right', 'jump', 'sprint', 'jump', 'sneak', 'sprint', 'attack', 'use', 'drop', 'mount'];
+        keys.forEach(k => bot.setControlState && bot.setControlState(k, false));
+        bot.clearControlStates && bot.clearControlStates();
+    } catch (_) { }
+}
+
+
+
 export class Agent {
     async start(load_mem = false, init_message = null, count_id = 0) {
         this.last_sender = null;
@@ -475,13 +486,41 @@ export class Agent {
         this.bot.emit('idle');
     }
 
-    async update(delta) {
-        await this.bot.modes.update();
-        if (!settings.human_controllable) {
-            this.self_prompter.update(delta);
-        }
-        await this.checkTaskDone();
+    // ==== inside Agent class ====
+    isHumanControlled() {
+        // prefer this.settings if your Agent stores settings there; fall back to global `settings`
+        return !!(this.settings?.human_controllable ?? (typeof settings !== 'undefined' && settings.human_controllable));
     }
+
+    applyHumanHoldIfNeeded() {
+        if (!this.isHumanControlled() || this._humanHoldApplied) return;
+        this._humanHoldApplied = true;
+
+        try { this.actionManager?.cancelAll?.('Human-controlled idle'); } catch (_) { }
+        try { this.planner?.stop?.(); this.planner?.clear?.(); } catch (_) { }
+        try { this.self_prompter?.stop?.(); } catch (_) { }
+        try { this.bot?.pathfinder?.setGoal?.(null); } catch (_) { }
+        try { this.bot?.modes?.set?.('idle'); } catch (_) { }
+        try { clearAllControls(this.bot); } catch (_) { }
+
+        this.history?.add?.('system', 'Human-controlled mode: waiting for explicit instructions.');
+    }
+
+
+    // ==== tighten your main update loop ====
+    async update(delta) {
+        // Hard gate: if human-controlled, freeze and skip *all* autonomous updates.
+        if (this.isHumanControlled()) {
+            this.applyHumanHoldIfNeeded();
+            return;
+        }
+
+        // Original behavior
+        await this.bot.modes.update?.();
+        this.self_prompter?.update?.(delta);
+        await this.checkTaskDone?.();
+    }
+
 
     isIdle() {
         return !this.actions.executing;

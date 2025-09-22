@@ -60,19 +60,26 @@ class MindServerProxy {
 
         this.socket.on('send-message', (data) => {
             try {
-                // If UI is relaying "as another agent", treat it like bot-to-bot chat
+                const isHuman = !!(this.agent?.settings?.human_controllable);
+                const channel = data?.channel || '';
+
+                // If human-controlled, only accept UI instructions (channel === 'instruction')
+                if (isHuman && !(channel === 'instruction' && data.from === 'UI')) {
+                    return; // drop everything else
+                }
+
+                // If UI is relaying "as another agent", go through the bot-to-bot path
                 if (data && typeof data.from === 'string' &&
-                    convoManager.isOtherAgent && convoManager.isOtherAgent(data.from)) {
-                    // Go through the convo manager so the receiver treats it as a peer
-                    convoManager.receiveFromBot(data.from, { message: data.message });
+                    convoManager?.isOtherAgent?.(data.from)) {
+                    convoManager.receiveFromBot?.(data.from, { message: data.message });
                 } else {
-                    // Otherwise, it's a normal UI → agent instruction/message
-                    this.agent.respondFunc(data.from, data.message);
+                    this.agent.respondFunc?.(data.from, data.message);
                 }
             } catch (error) {
                 console.error('Error: ', JSON.stringify(error, Object.getOwnPropertyNames(error)));
             }
         });
+
 
 
         this.socket.on('get-full-state', (callback) => {

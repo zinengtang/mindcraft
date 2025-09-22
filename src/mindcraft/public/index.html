@@ -547,6 +547,7 @@
             });
             // If we are about to create the SECOND agent, pre-check human_controllable.
             const hc = document.getElementById('setting-human_controllable');
+            // If exactly one agent exists, we are creating the second => default to checked
             if (hc && Array.isArray(latestAgents) && latestAgents.length === 1) {
                 hc.checked = true;
             }
@@ -867,9 +868,15 @@
         }
 
         function toggleHuman(name, on) {
-            // Apply immediately; MindServer will restart the agent with new settings.
+            // Show/hide UI rows immediately
+            const hcRows = document.getElementById(`hcRows-${name}`);
+            const nonRow = document.getElementById(`nonHcRow-${name}`);
+            if (hcRows && nonRow) { hcRows.style.display = on ? '' : 'none'; nonRow.style.display = on ? 'none' : ''; }
+
+            // Persist to backend (server restarts agent with new settings)
             socket.emit('set-agent-settings', name, { human_controllable: !!on });
         }
+
 
         function chatOther(fromName) {
             const input = document.getElementById(`chatToOther-${fromName}`);
@@ -887,10 +894,14 @@
         function sendInstruction(name) {
             const input = document.getElementById(`instruction-${name}`);
             if (!input || !input.value.trim()) return;
-            // Instruction goes to THIS agent; will execute actions via respondFunc
-            socket.emit('send-message', name, { from: 'UI', message: input.value.trim() });
+            socket.emit('send-message', name, {
+                from: 'UI',
+                channel: 'instruction',   // 👈 important
+                message: input.value.trim()
+            });
             input.value = '';
         }
+
 
         function onInstructionInputChange(name) {
             const input = document.getElementById(`instruction-${name}`);
@@ -921,7 +932,23 @@
                 : '';
 
             const lastMessage = agentLastMessage[agent.name] || '';
-            const hc = !!cfg.human_controllable;
+            // inside renderAgentCard(agent)
+            let hc = agent.human_controllable; // preferred (if server adds it)
+            if (hc === undefined) {
+                const cached = agentSettings[agent.name];
+                if (cached) {
+                    hc = !!cached.human_controllable;
+                } else {
+                    // lazy fetch, then refresh this card
+                    socket.emit('get-settings', agent.name, (s) => {
+                        agentSettings[agent.name] = s || {};
+                        const card = document.getElementById(`agent-${agent.name}`);
+                        if (card) card.outerHTML = renderAgentCard(agent); // simple refresh
+                    });
+                    hc = false; // temporary until callback
+                }
+            }
+
 
             // Two message rows when human-controlled:
             //  - chat to other agent (delivered to the other agent, 'from' = this agent)
