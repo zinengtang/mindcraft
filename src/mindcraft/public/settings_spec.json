@@ -4,6 +4,11 @@
         "required": true,
         "description": "The profile object to use, including name, prompts, and examples"
     },
+    "human_controllable": {
+        "type": "boolean",
+        "description": "If true, the agent will not act autonomously and will only execute explicit instructions sent from the web UI.",
+        "default": false
+    },
     "minecraft_version": {
         "type": "string",
         "description": "The version of Minecraft to use. Set to 'auto' to automatically detect the version.",
@@ -23,13 +28,21 @@
         "type": "string",
         "description": "The authentication method to use",
         "default": "offline",
-        "options": ["offline", "microsoft"]
+        "options": [
+            "offline",
+            "microsoft"
+        ]
     },
     "base_profile": {
         "type": "string",
         "description": "Allowed values: survival, assistant, creative, god_mode. Each has fine tuned settings for different game modes.",
         "default": "survival",
-        "options": ["survival", "assistant", "creative", "god_mode"]
+        "options": [
+            "survival",
+            "assistant",
+            "creative",
+            "god_mode"
+        ]
     },
     "load_memory": {
         "type": "boolean",
@@ -64,7 +77,12 @@
     "blocked_actions": {
         "type": "array",
         "description": "List of actions that are blocked",
-        "default": ["!checkBlueprint", "!checkBlueprintLevel", "!getBlueprint", "!getBlueprintLevel"]
+        "default": [
+            "!checkBlueprint",
+            "!checkBlueprintLevel",
+            "!getBlueprint",
+            "!getBlueprintLevel"
+        ]
     },
     "relevant_docs_count": {
         "type": "number",
@@ -100,7 +118,11 @@
         "type": "string",
         "description": "Whether to show \"full\" command syntax, \"shortened\" command syntax, or \"none\"",
         "default": "full",
-        "options": ["full", "shortened", "none"]
+        "options": [
+            "full",
+            "shortened",
+            "none"
+        ]
     },
     "chat_ingame": {
         "type": "boolean",
