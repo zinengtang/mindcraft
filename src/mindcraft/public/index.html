@@ -839,7 +839,7 @@
             if (!viewerContainer) return;
 
             const agentState = currentAgents.find(a => a.name === name);
-            const shouldShow = agentState?.in_game && settings?.render_bot_view === true;
+            const shouldShow = agentState?.in_game && (settings?.render_bot_view !== false);
             viewerContainer.parentElement.style.display = shouldShow ? '' : 'none';
         }
 

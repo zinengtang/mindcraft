@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 import convoManager from './conversation.js';
-import { setSettings } from './settings.js';
+import settings, { setSettings } from './settings.js';
 import { getFullState } from './library/full_state.js';
 
 // agent's individual connection to the mindserver
@@ -60,7 +60,7 @@ class MindServerProxy {
 
         this.socket.on('send-message', (data) => {
             try {
-                const isHuman = !!(this.agent?.settings?.human_controllable);
+                const isHuman = !!(this.agent?.settings?.human_controllable ?? settings.human_controllable);
                 const channel = data?.channel || '';
 
                 // If human-controlled, only accept UI instructions (channel === 'instruction')
@@ -111,8 +111,11 @@ class MindServerProxy {
     }
 
     setAgent(agent) {
+        // Keep a direct reference to live settings
+        agent.settings = settings;
         this.agent = agent;
     }
+
 
     getAgents() {
         return this.agents;

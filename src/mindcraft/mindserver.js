@@ -127,12 +127,10 @@ export function createMindServer(host_public = false, port = 8080) {
                 }
 
                 // Default the SECOND agent to human-controlled if not provided
-                if (
-                    Object.keys(agent_connections).length === 1 &&
-                    settings.human_controllable === undefined
-                ) {
+                if (Object.keys(agent_connections).length === 1) {
                     settings.human_controllable = true;
                 }
+
 
                 const name = settings?.profile?.name;
                 if (!name) {

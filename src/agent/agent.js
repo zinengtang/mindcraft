@@ -168,12 +168,17 @@ export class Agent {
             bannedFood: ["rotten_flesh", "spider_eye", "poisonous_potato", "pufferfish", "chicken"]
         };
 
-        if (save_data?.self_prompt) {
-            if (init_message) {
-                this.history.add('system', init_message);
-            }
+        if (!this.isHumanControlled() && save_data?.self_prompt) {
+            if (init_message) this.history.add('system', init_message);
             await this.self_prompter.handleLoad(save_data.self_prompt, save_data.self_prompting_state);
+        } else if (!this.isHumanControlled() && init_message) {
+            await this.handleMessage('system', init_message, 2);
+        } else if (!this.isHumanControlled()) {
+            this.openChat("Hello world! I am " + this.name);
+        } else {
+            this.history.add('system', 'Human-controlled mode: waiting for explicit instructions.');
         }
+
         if (save_data?.last_sender) {
             this.last_sender = save_data.last_sender;
             if (convoManager.otherAgentInGame(this.last_sender)) {
